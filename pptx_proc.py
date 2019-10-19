@@ -4,6 +4,8 @@ from zipfile import ZipFile
 from lxml import etree
 from pptx import Presentation
 
+import sys
+
 
 def pptx_slide_get_id_list(sldRoot):
 
@@ -97,10 +99,29 @@ def pptx_get_outline(pptPath):
         outline['child'].append({
             'title': sectTitle,
             'content': sectContent,
-            'child': None
+            'child': []
         })
 
     return outline
+
+
+def _pptx_print_outline(root, level):
+    for node in root:
+        if node['title'] != None:
+            for i in range(level):
+                sys.stdout.write('  ')
+            print('===', node['title'], '===')
+        for content in node['content']:
+            for i in range(level):
+                sys.stdout.write('  ')
+            print(content)
+        print()
+
+        _pptx_print_outline(node['child'], level + 1)
+
+
+def pptx_print_outline(outline):
+    _pptx_print_outline([outline], 0)
 
 
 def pptx_slide_export(pptPath, imgDir, format):
@@ -127,6 +148,6 @@ if __name__ == '__main__':
     fPath = './pptx_file/test.pptx'
 
     outline = pptx_get_outline(fPath)
-    print(outline)
+    pptx_print_outline(outline)
 
     pptx_slide_export(fPath, './pptx_file/' + str(uuid.uuid4()), 'PNG')
