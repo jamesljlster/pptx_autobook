@@ -3,6 +3,46 @@ from os.path import realpath
 from lxml import etree
 
 
+def pptx_slide_get_id_list(sldRoot):
+
+    ret = []
+
+    # Get slide id list
+    sldIdLst = sldRoot.findall('.//{*}sldId')
+    for i in range(len(sldIdLst)):
+        ret.append(sldIdLst[i].get('id'))
+
+    return ret
+
+
+def pptx_slide_get_section_info(sectNode):
+
+    # Get section name and child slide id list
+    return {
+        'name': sectNode.get('name'),
+        'list': pptx_slide_get_id_list(sectNode)
+    }
+
+
+def pptx_slide_get_list(pptXml):
+
+    sldList = []
+
+    # Find section node
+    ret = pptXml.findall('.//{*}section')
+    if len(ret) > 0:
+        for child in ret:
+            sldList.append(pptx_slide_get_section_info(child))
+
+    else:
+        sldList.append({
+            'name': None,
+            'list': pptx_slide_get_id_list(pptXml)
+        })
+
+    return sldList
+
+
 def pptx_slide_get_id_index_map(pptXml):
 
     sldIdMap = {}
@@ -17,9 +57,9 @@ def pptx_slide_get_id_index_map(pptXml):
         sldRoot = ret[0]
 
     # Get slide id list
-    sldIdLst = sldRoot.findall('.//p:sldId', namespaces=pptXml.nsmap)
-    for i in range(len(sldIdLst)):
-        sldIdMap[sldIdLst[i].get('id')] = i + 1
+    ret = pptx_slide_get_id_list(sldRoot)
+    for i in range(len(ret)):
+        sldIdMap[ret[i]] = i + 1
 
     return sldIdMap
 
@@ -51,6 +91,15 @@ if __name__ == '__main__':
 
     zFile = ZipFile(fPath)
     pptXml = etree.fromstring(zFile.read('ppt/presentation.xml'))
-    print('Slide ID Map:', pptx_slide_get_id_index_map(pptXml))
+    sldIdMap = pptx_slide_get_id_index_map(pptXml)
+    print('Slide ID Map:', sldIdMap)
+    print()
+
+    slideList = pptx_slide_get_list(pptXml)
+    for sld in slideList:
+        print('===', sld['name'], '===')
+        for sldId in sld['list']:
+            print('ID:', sldId, 'Index:', sldIdMap[sldId])
+        print()
 
     pptx_slide_export(fPath, './pptx_file/' + str(uuid.uuid4()), 'PNG')
