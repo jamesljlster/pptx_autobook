@@ -1,6 +1,8 @@
 from win32com.client import Dispatch, constants
 from os.path import realpath
+from zipfile import ZipFile
 from lxml import etree
+from pptx import Presentation
 
 
 def pptx_slide_get_id_list(sldRoot):
@@ -64,6 +66,43 @@ def pptx_slide_get_id_index_map(pptXml):
     return sldIdMap
 
 
+def pptx_get_outline(pptPath):
+
+    # Get presentation title
+    prs = Presentation(fPath)
+    if len(prs.slides) == 0:
+        raise RuntimeError('Empty PPTX file?!')
+    title = prs.slides[0].shapes.title.text
+
+    # Open persentatin xml
+    pptXml = etree.fromstring(ZipFile(pptPath).read('ppt/presentation.xml'))
+
+    # Get map of slide id and index
+    sldIdMap = pptx_slide_get_id_index_map(pptXml)
+
+    # Get slide information tree
+    sldList = pptx_slide_get_list(pptXml)
+
+    # Generate outline
+    outline = {
+        'title': title,
+        'content': [],
+        'child': []
+    }
+
+    for sect in sldList:
+        sectTitle = sect['name']
+        sectContent = [sldIdMap[sldId] for sldId in sect['list']]
+
+        outline['child'].append({
+            'title': sectTitle,
+            'content': sectContent,
+            'child': None
+        })
+
+    return outline
+
+
 def pptx_slide_export(pptPath, imgDir, format):
 
     # Open PowerPoint application
@@ -85,21 +124,9 @@ if __name__ == '__main__':
 
     import uuid
 
-    from zipfile import ZipFile
-
     fPath = './pptx_file/test.pptx'
 
-    zFile = ZipFile(fPath)
-    pptXml = etree.fromstring(zFile.read('ppt/presentation.xml'))
-    sldIdMap = pptx_slide_get_id_index_map(pptXml)
-    print('Slide ID Map:', sldIdMap)
-    print()
-
-    slideList = pptx_slide_get_list(pptXml)
-    for sld in slideList:
-        print('===', sld['name'], '===')
-        for sldId in sld['list']:
-            print('ID:', sldId, 'Index:', sldIdMap[sldId])
-        print()
+    outline = pptx_get_outline(fPath)
+    print(outline)
 
     pptx_slide_export(fPath, './pptx_file/' + str(uuid.uuid4()), 'PNG')
