@@ -71,7 +71,7 @@ def pptx_slide_get_id_index_map(pptXml):
 def pptx_get_outline(pptPath):
 
     # Get presentation title
-    prs = Presentation(fPath)
+    prs = Presentation(pptPath)
     if len(prs.slides) == 0:
         raise RuntimeError('Empty PPTX file?!')
     title = prs.slides[0].shapes.title.text

@@ -3,3 +3,6 @@ __pycache__
 
 # Test files
 pptx_file
+docx_file
+*.pptx
+*.docx
