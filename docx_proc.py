@@ -45,25 +45,32 @@ def docx_autobook(pptPath, inDocPath, outDocPath):
     slidePrefix = '投影片'
     imgFmt = 'PNG'
 
-    # Get outline from pptx
-    outline = pptx_get_outline(pptPath)
-
-    # Export slide images
-    uuidStr = str(uuid.uuid4())
-    pptx_slide_export(pptPath, uuidStr, imgFmt)
-
-    # Generate document
+    # Open/Create document
     doc = Document(inDocPath)
-    doc = docx_content_gen(doc, outline, uuidStr, slidePrefix, imgFmt)
-    doc.save(outDocPath)
 
-    # Clean up
-    shutil.rmtree(uuidStr)
+    # For all pptx in sequence
+    for p in pptPath:
+
+        # Get outline from pptx
+        outline = pptx_get_outline(p)
+
+        # Export slide images
+        uuidStr = str(uuid.uuid4())
+        pptx_slide_export(p, uuidStr, imgFmt)
+
+        # Generate document
+        doc = docx_content_gen(doc, outline, uuidStr, slidePrefix, imgFmt)
+
+        # Clean up
+        shutil.rmtree(uuidStr)
+
+    # Save document
+    doc.save(outDocPath)
 
 
 # Test
 if __name__ == '__main__':
 
-    fPath = './pptx_file/test.pptx'
+    fPath = ['./pptx_file/test.pptx']
 
     docx_autobook(fPath, None, './docx_file/test_out.docx')

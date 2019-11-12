@@ -4,7 +4,7 @@ import argparse as argp
 def get_arg():
     parser = argp.ArgumentParser()
 
-    parser.add_argument('--pptx-src', type=str,
+    parser.add_argument('--pptx-src', type=str, nargs='+',
                         required=True, help='PPTX source file path')
     parser.add_argument('--docx-in', type=str, default=None,
                         help='DOCX input file path')
