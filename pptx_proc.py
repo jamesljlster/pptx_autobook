@@ -5,6 +5,7 @@ from lxml import etree
 from pptx import Presentation
 
 import sys
+import unicodedata
 
 
 def pptx_slide_get_id_list(sldRoot):
@@ -75,6 +76,8 @@ def pptx_get_outline(pptPath):
     if len(prs.slides) == 0:
         raise RuntimeError('Empty PPTX file?!')
     title = prs.slides[0].shapes.title.text
+    title = ''.join(ch if unicodedata.category(ch)[0] != 'C' else ' '
+                    for ch in title)
 
     # Open persentatin xml
     pptXml = etree.fromstring(ZipFile(pptPath).read('ppt/presentation.xml'))
