@@ -5,7 +5,6 @@
 ### 相依套件
 
 基於 Anaconda3 2019.07：
-- [python-pptx](https://pypi.org/project/python-pptx/)
 - [python-docx](https://pypi.org/project/python-docx/)
 
 ### 使用方式

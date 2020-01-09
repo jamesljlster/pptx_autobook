@@ -1,4 +1,3 @@
-import pptx
 import uuid
 import shutil
 
