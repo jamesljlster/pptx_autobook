@@ -51,6 +51,9 @@ def docx_autobook(pptPath, inDocPath, outDocPath):
     # For all pptx in sequence
     for p in pptPath:
 
+        # Show processing information
+        print('Processing {} ...'.format(p))
+
         # Get outline from pptx
         outline = pptx_get_outline(p)
 

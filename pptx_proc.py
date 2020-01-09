@@ -2,7 +2,6 @@ from win32com.client import Dispatch, constants
 from os.path import realpath
 from zipfile import ZipFile
 from lxml import etree
-from pptx import Presentation
 
 import sys
 import unicodedata
@@ -48,6 +47,26 @@ def pptx_slide_get_list(pptXml):
     return sldList
 
 
+def pptx_get_title(slidXml):
+
+    # Find title node
+    retStr = None
+    root = slidXml.findall('.//{*}sp')
+    for node in root:
+        nodeType = [attr.get('type') for attr in node.findall('.//{*}ph')]
+        if 'ctrTitle' in nodeType:
+            textList = node.findall('.//{*}t')
+
+            # Join all text
+            retStr = ' '.join(text.text for text in textList)
+
+            # Replace non-printable characters with spaces
+            retStr = ''.join(ch if unicodedata.category(ch)[0] != 'C'
+                             else ' ' for ch in retStr)
+
+    return retStr
+
+
 def pptx_slide_get_id_index_map(pptXml):
 
     sldIdMap = {}
@@ -71,14 +90,6 @@ def pptx_slide_get_id_index_map(pptXml):
 
 def pptx_get_outline(pptPath):
 
-    # Get presentation title
-    prs = Presentation(pptPath)
-    if len(prs.slides) == 0:
-        raise RuntimeError('Empty PPTX file?!')
-    title = prs.slides[0].shapes.title.text
-    title = ''.join(ch if unicodedata.category(ch)[0] != 'C' else ' '
-                    for ch in title)
-
     # Open persentatin xml
     pptXml = etree.fromstring(ZipFile(pptPath).read('ppt/presentation.xml'))
 
@@ -87,6 +98,10 @@ def pptx_get_outline(pptPath):
 
     # Get slide information tree
     sldList = pptx_slide_get_list(pptXml)
+
+    # Get presentation title
+    sldXml = etree.fromstring(ZipFile(pptPath).read('ppt/slides/slide1.xml'))
+    title = pptx_get_title(sldXml)
 
     # Generate outline
     outline = {
